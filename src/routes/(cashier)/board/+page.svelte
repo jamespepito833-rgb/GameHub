@@ -45,11 +45,81 @@
 		const ss = String(s % 60).padStart(2, '0');
 		return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 	}
+
+	let actionErr = $state('');
+	let actionMsg = $state('');
+
+	async function refresh() {
+		try {
+			const res = await fetch('/api/tables/status');
+			const j = await res.json();
+			if (res.ok) tables = j.data.tables;
+		} catch (e) {
+			pollErr = (e as Error).message;
+		}
+	}
+
+	async function startSession(tableId: string) {
+		const customerName = prompt('Customer name (leave empty for Walk-in):') ?? 'Walk-in';
+		const durStr = prompt('Duration minutes (15-480):', '60');
+		if (!durStr) return;
+		const durationMinutes = parseInt(durStr, 10);
+		actionErr = '';
+		actionMsg = '';
+		const res = await fetch('/api/sessions', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ tableId, customerName: customerName || 'Walk-in', durationMinutes })
+		});
+		const j = await res.json();
+		if (!res.ok) {
+			actionErr = j.error?.message ?? j.error?.code ?? 'Failed';
+			return;
+		}
+		actionMsg = `Started ${j.data.session._id.slice(-4)}`;
+		await refresh();
+	}
+
+	async function extendSession(sessionId: string) {
+		const addStr = prompt('Extend minutes (15-240):', '30');
+		if (!addStr) return;
+		const addedMinutes = parseInt(addStr, 10);
+		actionErr = '';
+		actionMsg = '';
+		const res = await fetch(`/api/sessions/${sessionId}/extend`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ addedMinutes })
+		});
+		const j = await res.json();
+		if (!res.ok) {
+			actionErr = j.error?.message ?? j.error?.code ?? 'Failed';
+			return;
+		}
+		actionMsg = `Extended +${addedMinutes}m`;
+		await refresh();
+	}
+
+	async function endSession(sessionId: string) {
+		if (!confirm('End session now?')) return;
+		actionErr = '';
+		actionMsg = '';
+		const res = await fetch(`/api/sessions/${sessionId}/end`, { method: 'POST' });
+		const j = await res.json();
+		if (!res.ok) {
+			actionErr = j.error?.message ?? 'Failed';
+			return;
+		}
+		actionMsg = `Ended, duration ${j.data.session.durationMinutes}m`;
+		await refresh();
+	}
 </script>
 
 <h1>Cashier Board</h1>
-<p>Welcome {data.user.displayName} — live table status (polls every 10s, timers per-second). Phase 5-01.</p>
+<p>Welcome {data.user.displayName} — live table status (polls every 10s, timers per-second). Phase 5.</p>
 {#if pollErr}<div style="color:#b00020;">{pollErr}</div>{/if}
+{#if actionErr}<div style="color:#b00020;background:#fdecea;padding:0.5rem;">{actionErr}</div>{/if}
+{#if actionMsg}<div style="color:#0a5;background:#e7f5e7;padding:0.5rem;">{actionMsg}</div>{/if}
 
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin:1rem 0;">
 	{#each tables as t}
@@ -80,12 +150,12 @@
 					<small>Started {new Date(t.currentSession.startedAt).toLocaleString()}</small>
 				</div>
 				<div style="margin-top:0.5rem;display:flex;gap:0.5rem;">
-					<button disabled title="Phase 5-02">Extend</button>
-					<button disabled title="Phase 5-02">End</button>
+					<button onclick={() => extendSession(t.currentSession!._id)}>Extend</button>
+					<button onclick={() => endSession(t.currentSession!._id)}>End</button>
 				</div>
 			{:else if t.displayStatus === 'AVAILABLE'}
 				<div style="margin-top:0.5rem;">
-					<button disabled title="Phase 5-02">Start Session</button>
+					<button onclick={() => startSession(t._id)}>Start Session</button>
 				</div>
 			{:else if t.displayStatus === 'RESERVED'}
 				<div style="margin-top:0.5rem;font-size:0.85rem;color:#ef6c00;">Reserved soon</div>
