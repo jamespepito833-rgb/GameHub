@@ -72,9 +72,8 @@ export const POST: RequestHandler = async (event) => {
 		effectiveFrom: pricing.effectiveFrom
 	};
 
-	const sessionDoc = {
+	const sessionDoc: any = {
 		tableId: tableOid,
-		reservationId: null,
 		customerName: customerName.trim() || 'Walk-in',
 		customerContact: customerContact?.trim() ?? '',
 		status: 'ACTIVE' as const,
