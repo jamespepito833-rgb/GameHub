@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	let pricing: any = $state(null);
 	let err = $state('');
 
@@ -27,6 +28,7 @@
 			<a href="/rates" class="nav-link" aria-current="page">Rates</a>
 			<a href="/reserve" class="nav-link">Reserve</a>
 		</div>
+		<ThemeToggle />
 	</div>
 	<div class="nav-hairline"></div>
 </nav>
@@ -68,8 +70,8 @@
 <style>
 	:global(body) {
 		margin: 0;
-		background: #0a0a0a;
-		color: #f5f1e8;
+		background: var(--bg);
+		color: var(--text);
 		font: 100%/1.5 system-ui, sans-serif;
 	}
 	.nav {
@@ -273,7 +275,7 @@
 	}
 	.btn-ghost {
 		background: rgba(245, 241, 232, 0.08);
-		color: #f5f1e8;
+		color: var(--text);
 		border-color: rgba(245, 241, 232, 0.14);
 	}
 	.foot {
@@ -287,3 +289,4 @@
 		}
 	}
 </style>
+

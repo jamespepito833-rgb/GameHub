@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	let tables: any[] = $state([]);
 	let pricing: any = $state(null);
 	let tableId = $state('');
@@ -64,6 +65,7 @@
 			<a href="/rates" class="nav-link">Rates</a>
 			<a href="/reserve" class="nav-link" aria-current="page">Reserve</a>
 		</div>
+		<ThemeToggle />
 	</div>
 	<div class="nav-hairline"></div>
 </nav>
@@ -160,8 +162,8 @@
 <style>
 	:global(body) {
 		margin: 0;
-		background: #0a0a0a;
-		color: #f5f1e8;
+		background: var(--bg);
+		color: var(--text);
 		font: 100%/1.5 system-ui, sans-serif;
 	}
 	.nav {
@@ -361,7 +363,7 @@
 	.field input,
 	.field select {
 		background: #0f0f0f;
-		color: #f5f1e8;
+		color: var(--text);
 		border: 1px solid rgba(245, 241, 232, 0.14);
 		border-radius: 12px;
 		padding: 11px 12px;
@@ -378,7 +380,7 @@
 		color: rgba(245, 241, 232, 0.55);
 	}
 	.field small a {
-		color: #f5f1e8;
+		color: var(--text);
 	}
 	.field-full {
 		grid-column: 1 / -1;
@@ -426,3 +428,4 @@
 		}
 	}
 </style>
+

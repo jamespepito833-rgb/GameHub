@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	let id = $state('');
 	let contact = $state('');
 	let reservation: any = $state(null);
@@ -58,6 +59,7 @@
 			<a href="/rates" class="nav-link">Rates</a>
 			<a href="/reserve" class="nav-link">Reserve</a>
 		</div>
+		<ThemeToggle />
 	</div>
 	<div class="nav-hairline"></div>
 </nav>
@@ -159,8 +161,8 @@
 <style>
 	:global(body) {
 		margin: 0;
-		background: #0a0a0a;
-		color: #f5f1e8;
+		background: var(--bg);
+		color: var(--text);
 		font: 100%/1.5 system-ui, sans-serif;
 	}
 	.nav {
@@ -303,7 +305,7 @@
 	}
 	.field input {
 		background: #0f0f0f;
-		color: #f5f1e8;
+		color: var(--text);
 		border: 1px solid rgba(245, 241, 232, 0.14);
 		border-radius: 12px;
 		padding: 11px 12px;
@@ -329,7 +331,7 @@
 	}
 	.btn-ghost {
 		background: rgba(245, 241, 232, 0.08);
-		color: #f5f1e8;
+		color: var(--text);
 		border-color: rgba(245, 241, 232, 0.14);
 	}
 	.btn-danger {
@@ -410,7 +412,7 @@
 	.badge[data-status='CHECKED_IN'] {
 		background: rgba(212, 175, 55, 0.14);
 		border-color: rgba(212, 175, 55, 0.28);
-		color: #f5f1e8;
+		color: var(--text);
 	}
 	.ticket-body {
 		padding: 14px 16px;
@@ -460,3 +462,4 @@
 		}
 	}
 </style>
+

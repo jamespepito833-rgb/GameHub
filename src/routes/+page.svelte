@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 
 	// Subtle parallax for hero felt
 	let mouseX = spring(0, { stiffness: 0.08, damping: 0.9 });
@@ -56,6 +57,7 @@
 			<a href="/rates" class="nav-link">Rates</a>
 			<a href="/reserve" class="nav-link">Reserve</a>
 		</div>
+		<ThemeToggle />
 	</div>
 	<div class="nav-hairline" aria-hidden="true"></div>
 </nav>
@@ -277,13 +279,11 @@
 
 <style>
 	/* ---------- Tokens: wood / felt / gold / ink ---------- */
-	:global(:root) {
-		color-scheme: dark;
-	}
+	
 	:global(body) {
 		margin: 0;
-		background: #0a0a0a;
-		color: #f5f1e8;
+		background: var(--bg);
+		color: var(--text);
 		font: 100%/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 		font-optical-sizing: auto;
 		-webkit-font-smoothing: antialiased;
@@ -459,7 +459,7 @@
 		position: absolute;
 		inset: 0;
 		z-index: -1;
-		background: #0a0a0a;
+		background: var(--bg);
 		overflow: clip;
 	}
 	.hero-felt {
@@ -651,7 +651,7 @@
 	}
 	.btn-ghost {
 		background: rgba(245, 241, 232, 0.08);
-		color: #f5f1e8;
+		color: var(--text);
 		border-color: rgba(245, 241, 232, 0.14);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
@@ -721,7 +721,7 @@
 		text-transform: uppercase;
 	}
 	.scroll-hint:hover {
-		color: #f5f1e8;
+		color: var(--text);
 	}
 	.hint-line {
 		width: 1px;
@@ -788,7 +788,7 @@
 		line-height: 0.98;
 		letter-spacing: -0.03em;
 		font-weight: 800;
-		color: #f5f1e8;
+		color: var(--text);
 	}
 	.section-sub {
 		margin: 10px 0 0;
@@ -909,7 +909,7 @@
 		align-items: center;
 		gap: 6px;
 		margin-top: 14px;
-		color: #f5f1e8;
+		color: var(--text);
 		text-decoration: none;
 		font-weight: 650;
 		font-size: 0.9rem;
@@ -978,7 +978,7 @@
 		letter-spacing: 0.06em;
 		background: rgba(212, 175, 55, 0.14);
 		border: 1px solid rgba(212, 175, 55, 0.22);
-		color: #f5f1e8;
+		color: var(--text);
 		margin-bottom: 12px;
 	}
 	.step h3 {
@@ -1014,7 +1014,7 @@
 		color: rgba(245, 241, 232, 0.62);
 	}
 	.step-link {
-		color: #f5f1e8;
+		color: var(--text);
 		text-decoration: none;
 		font-weight: 650;
 		font-size: 0.85rem;
@@ -1073,7 +1073,7 @@
 	}
 	.btn-wood {
 		background: #3c2415;
-		color: #f5f1e8;
+		color: var(--text);
 		border-color: rgba(212, 175, 55, 0.22);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.08) inset,
@@ -1205,7 +1205,7 @@
 		font-size: 0.9rem;
 	}
 	.info-card a {
-		color: #f5f1e8;
+		color: var(--text);
 		text-underline-offset: 3px;
 	}
 	.info-card a:hover {
@@ -1217,7 +1217,7 @@
 		margin-top: 16px;
 		border-top: 1px solid rgba(245, 241, 232, 0.06);
 		padding: 18px 0 28px;
-		background: #0a0a0a;
+		background: var(--bg);
 	}
 	.footer-inner {
 		display: flex;
@@ -1246,7 +1246,7 @@
 		font-size: 0.88rem;
 	}
 	.footer-nav a:hover {
-		color: #f5f1e8;
+		color: var(--text);
 		text-decoration: underline;
 		text-underline-offset: 3px;
 	}
@@ -1284,3 +1284,5 @@
 		}
 	}
 </style>
+
+

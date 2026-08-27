@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+
 	let date = $state(new Date().toISOString().slice(0, 10));
 	let startTime = $state('10:00');
 	let duration = $state(60);
@@ -52,6 +54,7 @@
 			<a href="/rates" class="nav-link">Rates</a>
 			<a href="/reserve" class="nav-link">Reserve</a>
 		</div>
+		<ThemeToggle />
 	</div>
 	<div class="nav-hairline" aria-hidden="true"></div>
 </nav>
@@ -146,8 +149,8 @@
 <style>
 	:global(body) {
 		margin: 0;
-		background: #0a0a0a;
-		color: #f5f1e8;
+		background: var(--bg);
+		color: var(--text);
 		font: 100%/1.5 system-ui, -apple-system, sans-serif;
 		-webkit-font-smoothing: antialiased;
 	}
@@ -310,7 +313,7 @@
 	.field input,
 	.field select {
 		background: #0f0f0f;
-		color: #f5f1e8;
+		color: var(--text);
 		border: 1px solid rgba(245, 241, 232, 0.14);
 		border-radius: 12px;
 		padding: 10px 12px;
@@ -354,7 +357,7 @@
 	}
 	.btn-ghost {
 		background: rgba(245, 241, 232, 0.08);
-		color: #f5f1e8;
+		color: var(--text);
 		border-color: rgba(245, 241, 232, 0.14);
 	}
 	.alert {
@@ -502,7 +505,7 @@
 	}
 	.tcard-action {
 		margin-left: auto;
-		color: #f5f1e8;
+		color: var(--text);
 		text-decoration: none;
 		font-weight: 650;
 		border-bottom: 1px solid rgba(245, 241, 232, 0.18);
@@ -538,7 +541,7 @@
 		}
 	}
 	.foot a {
-		color: #f5f1e8;
+		color: var(--text);
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.btn {
@@ -547,3 +550,4 @@
 		}
 	}
 </style>
+
