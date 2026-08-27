@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import ShapeGrid from '$lib/components/ShapeGrid.svelte';
+	import { theme } from '$lib/theme';
 
 	// Subtle parallax for hero felt
 	let mouseX = spring(0, { stiffness: 0.08, damping: 0.9 });
@@ -9,7 +11,9 @@
 	let heroRef: HTMLElement;
 
 	let pricing: any = $state(null);
+	let currentTheme: 'light' | 'dark' = $state('dark');
 	onMount(async () => {
+		theme.subscribe((v) => (currentTheme = v))();
 		try {
 			const res = await fetch('/api/pricing/current');
 			const j = await res.json();
@@ -70,9 +74,21 @@
 	onpointerleave={resetHero}
 	aria-label="GameHub hero"
 >
-	<!-- Material layers: base + felt texture + vignette + wood rail -->
+	<!-- Material layers: base + felt texture + vignette + wood rail + ShapeGrid -->
 	<div class="hero-bg" aria-hidden="true">
 		<div class="hero-felt" style="transform: translate3d({$mouseX * 0.6}px, {$mouseY * 0.6}px, 0);"></div>
+		<!-- React Bits ShapeGrid — restrained, theme-aware, respects reduced-motion -->
+		<div class="hero-grid">
+			<ShapeGrid
+				speed={0.3}
+				squareSize={44}
+				direction="diagonal"
+				shape="square"
+				borderColor={currentTheme === 'dark' ? 'rgba(212, 175, 55, 0.09)' : 'rgba(60, 36, 21, 0.08)'}
+				hoverFillColor={currentTheme === 'dark' ? 'rgba(42, 210, 122, 0.16)' : 'rgba(14, 61, 45, 0.12)'}
+				hoverTrailAmount={3}
+			/>
+		</div>
 		<div class="hero-vignette"></div>
 		<div class="hero-wood"></div>
 		<!-- Gold hairline at bottom of hero -->
@@ -526,6 +542,23 @@
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
 		mix-blend-mode: soft-light;
 		pointer-events: none;
+	}
+	.hero-grid {
+		position: absolute;
+		inset: 0;
+		opacity: 0.42;
+		z-index: 1;
+		/* Let hero parallax still receive pointer, but grid also gets hover */
+		pointer-events: auto;
+	}
+	/* Light mode: slightly stronger grid for contrast on lighter felt fallback */
+	:global([data-theme='light']) .hero-grid {
+		opacity: 0.32;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.hero-grid {
+			opacity: 0.18;
+		}
 	}
 	.hero-orb {
 		position: absolute;
