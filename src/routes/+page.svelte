@@ -84,8 +84,8 @@
 				squareSize={44}
 				direction="diagonal"
 				shape="square"
-				borderColor={currentTheme === 'dark' ? 'rgba(212, 175, 55, 0.09)' : 'rgba(60, 36, 21, 0.08)'}
-				hoverFillColor={currentTheme === 'dark' ? 'rgba(42, 210, 122, 0.16)' : 'rgba(14, 61, 45, 0.12)'}
+				borderColor={currentTheme === 'dark' ? 'rgba(212, 175, 55, 0.09)' : 'rgba(148, 163, 184, 0.18)'}
+				hoverFillColor={currentTheme === 'dark' ? 'rgba(42, 210, 122, 0.16)' : 'rgba(10, 102, 194, 0.14)'}
 				hoverTrailAmount={3}
 			/>
 		</div>

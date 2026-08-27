@@ -36,29 +36,29 @@
 {@render children()}
 
 <style>
-	/* Theme tokens: light is default, dark overrides via [data-theme="dark"] */
+	/* Theme tokens: light is default (stackinfolio: white + #eef4ff light-blue, slate, blue #0a66c2), dark is billiard premium */
 	:global(:root) {
-		--bg: #fdfcfa;
+		--bg: #ffffff;
 		--surface: #ffffff;
-		--surface-2: #f5f1e8;
-		--text: #1a1a1a;
-		--text-muted: rgba(26, 26, 26, 0.68);
-		--text-faint: rgba(26, 26, 26, 0.48);
-		--border: rgba(26, 26, 26, 0.08);
-		--border-strong: rgba(26, 26, 26, 0.14);
-		--nav-bg: rgba(253, 252, 250, 0.72);
+		--surface-2: #f0f7ff;
+		--text: #0f172a;
+		--text-muted: #64748b;
+		--text-faint: #94a3b8;
+		--border: #e2e8f0;
+		--border-strong: #cbd5e1;
+		--nav-bg: rgba(255, 255, 255, 0.82);
 		--felt-1: #1b7a4b;
 		--felt-2: #0e3d2d;
 		--wood: #3c2415;
-		--gold: #d4af37;
-		--accent: #0e8a4a;
-		--accent-soft: rgba(14, 138, 74, 0.12);
-		--toggle-track: rgba(26, 26, 26, 0.08);
-		--toggle-border: rgba(26, 26, 26, 0.12);
-		--toggle-thumb: #0a0a0a;
-		--toggle-thumb-icon: #f5f1e8;
-		--banner-bg: #eef;
-		--banner-text: #111;
+		--gold: #0a66c2;
+		--accent: #0a66c2;
+		--accent-soft: rgba(10, 102, 194, 0.08);
+		--toggle-track: rgba(15, 23, 42, 0.08);
+		--toggle-border: rgba(15, 23, 42, 0.12);
+		--toggle-thumb: #0f172a;
+		--toggle-thumb-icon: #ffffff;
+		--banner-bg: #f0f7ff;
+		--banner-text: #0f172a;
 		color-scheme: light;
 	}
 	:global([data-theme='dark']) {
@@ -108,5 +108,47 @@
 		:global(html.theme-transition body) {
 			transition: none !important;
 		}
+	}
+
+	/* Light mode: stackinfolio palette — white + #f0f7ff, slate, blue #0a66c2 */
+	:global([data-theme='light'] .card),
+	:global([data-theme='light'] .step),
+	:global([data-theme='light'] .info-card),
+	:global([data-theme='light'] .panel),
+	:global([data-theme='light'] .tcard) {
+		background: #ffffff !important;
+		border-color: #e2e8f0 !important;
+		color: #0f172a;
+		box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+	}
+	:global([data-theme='light'] .card-featured) {
+		background: #f0f7ff !important;
+		border-color: #bfdbfe !important;
+	}
+	:global([data-theme='light'] .card p),
+	:global([data-theme='light'] .step p),
+	:global([data-theme='light'] .info-card p) {
+		color: #475569 !important;
+	}
+	:global([data-theme='light'] .kicker) {
+		color: #0a66c2 !important;
+	}
+	:global([data-theme='light'] .section-head h2),
+	:global([data-theme='light'] .card h3),
+	:global([data-theme='light'] .step h3),
+	:global([data-theme='light'] .info-card h3) {
+		color: #0f172a !important;
+	}
+	:global([data-theme='light'] .rail) {
+		background: #f8fafc !important;
+		border-color: #e2e8f0 !important;
+	}
+	:global([data-theme='light'] .rail-copy h2),
+	:global([data-theme='light'] .rail-copy p) {
+		color: #0f172a !important;
+	}
+	:global([data-theme='light'] .footer) {
+		background: #ffffff !important;
+		border-color: #e2e8f0 !important;
 	}
 </style>
