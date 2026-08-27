@@ -155,9 +155,9 @@ export const GET: RequestHandler = async (event) => {
 	if (!user) {
 		return errorJson(401, 'E_UNAUTHENTICATED', 'Authentication required for listing reservations');
 	}
-	// Allow CASHIER and ADMIN
-	if (user.role !== 'CASHIER' && user.role !== 'ADMIN') {
-		return errorJson(403, 'E_FORBIDDEN', 'Forbidden');
+	// CASHIER only for operational list (ADMIN not expected to do daily ops)
+	if (user.role !== 'CASHIER') {
+		return errorJson(403, 'E_FORBIDDEN', 'CASHIER only');
 	}
 	const reservations = await db.collection('reservations').find(filter).sort({ startTime: 1 }).limit(100).toArray();
 	return successJson({ reservations });

@@ -149,18 +149,23 @@
 					<div>Status: {t.currentSession.status}</div>
 					<small>Started {new Date(t.currentSession.startedAt).toLocaleString()}</small>
 				</div>
-				<div style="margin-top:0.5rem;display:flex;gap:0.5rem;">
+				<div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
 					<button onclick={() => extendSession(t.currentSession!._id)}>Extend</button>
 					<button onclick={() => endSession(t.currentSession!._id)}>End</button>
+					<button onclick={async () => { await fetch(`/api/tables/${t._id}/operational-status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'AVAILABLE' }) }); await refresh(); }} style="background:#e8f5e9;">Mark AVAILABLE</button>
 				</div>
 			{:else if t.displayStatus === 'AVAILABLE'}
-				<div style="margin-top:0.5rem;">
+				<div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
 					<button onclick={() => startSession(t._id)}>Start Session</button>
+					<button onclick={async () => { await fetch(`/api/tables/${t._id}/operational-status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'OCCUPIED' }) }); await refresh(); }}>Mark OCCUPIED</button>
 				</div>
 			{:else if t.displayStatus === 'RESERVED'}
 				<div style="margin-top:0.5rem;font-size:0.85rem;color:#ef6c00;">Reserved soon</div>
 			{:else}
-				<div style="margin-top:0.5rem;font-size:0.85rem;color:#616161;">{t.status}</div>
+				<div style="margin-top:0.5rem;display:flex;gap:0.5rem;">
+					<span style="font-size:0.85rem;color:#616161;">{t.status}</span>
+					{#if t.status === 'OCCUPIED'}<button onclick={async () => { await fetch(`/api/tables/${t._id}/operational-status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'AVAILABLE' }) }); await refresh(); }}>Mark AVAILABLE</button>{/if}
+				</div>
 			{/if}
 		</div>
 	{/each}

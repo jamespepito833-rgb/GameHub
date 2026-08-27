@@ -346,7 +346,7 @@ ACTIVE --extend--> EXTENDED --extend--> EXTENDED --end--> ENDED --pay--> COMPLET
 | Area | Workflow |
 |------|----------|
 | **Cashiers** | List → Create (`POST /api/admin/cashiers`) → Set status active/disabled → Set schedules (`cashierSchedules`) → Reset password. All → `activityLogs`. |
-| **Tables** | CRUD (`tables` { name, status, description }); cannot delete table with active session/reservation; setting to `MAINTENANCE` blocks new sessions/reservations but does not kill active session |
+| **Tables (ADMIN)** | Config create (`POST /api/admin/tables` { name, description }) + `UNDER_MAINTENANCE` toggle (`PATCH /api/admin/tables/:id` { status: `MAINTENANCE`/`OUT_OF_SERVICE` }); **ADMIN only** — cannot set `AVAILABLE`/`OCCUPIED`. Cannot delete table with active session/reservation; setting to `MAINTENANCE` blocks new sessions/reservations but does not kill active session |
 | **Pricing** | Create rate (`pricing` { ratePerHour, effectiveFrom, effectiveTo?, isActive }); new rate does not retroactively change historical snapshots |
 | **Dashboard** | `GET /api/admin/dashboard` aggregation: income today/week/month, table utilization, total hours, active sessions, queue length |
 | **Reports** | Income reports, table usage, total hours, transactions, sessions, reservations — filtered by date range, exportable |

@@ -78,7 +78,7 @@ C:\GameHub\
 └─ vite.config.ts
 ```
 
-**Module boundaries:** `lib/server/services/*` one file per module (no giant service). Pages thin; logic in services.
+**Module boundaries:** `lib/server/services/*` one file per module (no giant service). Pages thin; logic in services. **Role split:** operational (`AVAILABLE`↔`OCCUPIED`, `sessions`, `queue`, `orders`, `transactions` pay) is `CASHIER` (`POST /api/tables/:id/operational-status`, `POST /api/sessions`, etc); maintenance (`UNDER_MAINTENANCE`) is `ADMIN` (`PATCH /api/admin/tables`).
 
 ---
 
@@ -103,7 +103,7 @@ export function requireRole(locals: App.Locals, ...roles: Role[]) {
   if (!roles.includes(locals.user.role)) throw error(403, { code: "E_FORBIDDEN" });
 }
 ```
-- **Protected groups:** `(cashier)/+layout.server.ts` calls `requireRole(locals, "CASHIER","ADMIN")`; `(admin)` requires `"ADMIN"`.
+- **Protected groups:** `(cashier)/+layout.server.ts` calls `requireRole(locals, "CASHIER")` (operational); `(admin)` requires `"ADMIN"` (maintenance/config). `ADMIN` is **not** allowed on operational routes (`/api/sessions`, `/api/transactions` pay, `/api/tables/:id/operational-status`, `/api/queue`, `/api/orders`); `CASHIER` is **not** allowed on maintenance (`PATCH /api/admin/tables` with `UNDER_MAINTENANCE`).
 
 ---
 

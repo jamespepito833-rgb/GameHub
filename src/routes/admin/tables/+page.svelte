@@ -56,8 +56,8 @@
 	}
 </script>
 
-<h1>Tables</h1>
-<p>Manage billiard tables. Status: AVAILABLE / MAINTENANCE / OUT_OF_SERVICE. OCCUPIED is system-managed.</p>
+<h1>Tables — Maintenance (ADMIN)</h1>
+<p>ADMIN: create tables + set <code>UNDER_MAINTENANCE</code> (<code>MAINTENANCE</code>/<code>OUT_OF_SERVICE</code>) and remove it. Operational <code>AVAILABLE</code>↔<code>OCCUPIED</code> is <strong>CASHIER</strong> via Board / <code>POST /api/tables/:id/operational-status</code>.</p>
 
 {#if err}<div style="color:#b00020;background:#fdecea;padding:0.5rem;">{err}</div>{/if}
 {#if msg}<div style="color:#0a0;background:#e7f5e7;padding:0.5rem;">{msg}</div>{/if}
@@ -77,9 +77,8 @@
 				<td>{t.description}</td>
 				<td>{t.status}</td>
 				<td>
-					{#if t.status !== 'AVAILABLE'}<button onclick={()=>setStatus(t._id, 'AVAILABLE')}>Set AVAILABLE</button>{/if}
-					{#if t.status !== 'MAINTENANCE'}<button onclick={()=>setStatus(t._id, 'MAINTENANCE')}>MAINTENANCE</button>{/if}
-					{#if t.status !== 'OUT_OF_SERVICE'}<button onclick={()=>setStatus(t._id, 'OUT_OF_SERVICE')}>OUT_OF_SERVICE</button>{/if}
+					{#if t.status === 'AVAILABLE'}<button onclick={()=>setStatus(t._id, 'MAINTENANCE')}>Set MAINTENANCE</button>{:else if t.status === 'MAINTENANCE' || t.status === 'OUT_OF_SERVICE'}<button onclick={()=>setStatus(t._id, 'AVAILABLE')}>Remove Maintenance (→ AVAILABLE)</button>{/if}
+					{#if t.status !== 'OUT_OF_SERVICE' && t.status !== 'MAINTENANCE'}<button onclick={()=>setStatus(t._id, 'OUT_OF_SERVICE')}>OUT_OF_SERVICE</button>{:else if t.status === 'OUT_OF_SERVICE'}<button onclick={()=>setStatus(t._id, 'MAINTENANCE')}>→ MAINTENANCE</button>{/if}
 					<button onclick={()=>del(t._id)} style="color:#b00020;">Delete</button>
 				</td>
 			</tr>

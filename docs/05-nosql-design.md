@@ -67,14 +67,14 @@ interface User {
 
 ---
 
-### 3.2 `tables`
+### 3.2 `tables` (role-separated)
 
 ```ts
 interface Table {
   _id: ObjectId
   name: string            // unique, e.g. "Table 1", 1-30 chars
   description?: string    // 0-500
-  status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE" | "OUT_OF_SERVICE"
+  status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE" | "OUT_OF_SERVICE" // UNDER_MAINTENANCE = MAINTENANCE/OUT_OF_SERVICE (docs alias, DB keeps MAINTENANCE)
   createdAt: Date
   updatedAt: Date
   updatedBy?: ObjectId
@@ -85,7 +85,7 @@ interface Table {
 - `db.tables.createIndex({ name: 1 }, { unique: true })`
 - `db.tables.createIndex({ status: 1 })`
 
-**Rule:** `status` transition enforced app-side (BR-12, BR-01). Cannot set `MAINTENANCE` if active session exists (check).
+**Rule (role-separated, BR-12/BR-01):** `AVAILABLE`↔`OCCUPIED` **CASHIER-only** (`POST /api/sessions`, `POST /api/transactions` → `AVAILABLE`, or `POST /api/tables/:id/operational-status`); `ADMIN` attempting `403`. `UNDER_MAINTENANCE` (`MAINTENANCE`/`OUT_OF_SERVICE`) **ADMIN-only** (`PATCH /api/admin/tables`); `CASHIER` attempting `403`. Cannot set `MAINTENANCE` if active `ACTIVE/EXTENDED` session exists (check).
 
 ---
 

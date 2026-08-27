@@ -12,7 +12,7 @@ function getIp(event: Parameters<RequestHandler>[0]): string {
 
 export const GET: RequestHandler = async (event) => {
 	try {
-		requireRole(event, 'CASHIER', 'ADMIN');
+		requireRole(event, 'CASHIER');
 	} catch (e: any) {
 		if (e.status === 401) return errorJson(401, 'E_UNAUTHENTICATED', 'Not authenticated');
 		return errorJson(403, 'E_FORBIDDEN', 'Forbidden');
@@ -32,7 +32,7 @@ export const GET: RequestHandler = async (event) => {
 export const POST: RequestHandler = async (event) => {
 	let user: NonNullable<App.Locals['user']>;
 	try {
-		user = requireRole(event, 'CASHIER', 'ADMIN');
+		user = requireRole(event, 'CASHIER');
 	} catch (e: any) {
 		if (e.status === 401) return errorJson(401, 'E_UNAUTHENTICATED', 'Not authenticated');
 		return errorJson(403, 'E_FORBIDDEN', 'Forbidden');
@@ -77,3 +77,4 @@ export const POST: RequestHandler = async (event) => {
 	});
 	return successJson({ queueEntry: entry }, 201);
 };
+

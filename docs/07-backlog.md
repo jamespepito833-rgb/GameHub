@@ -50,7 +50,7 @@
 
 | ID | Title | Branch | Depends | Acceptance |
 |----|-------|--------|---------|------------|
-| 4-01 | Tables CRUD (`GET/POST/PATCH /api/tables` + `PATCH status`) | `feature/tables` | 3-04 | BR-01/12, cannot MAINTENANCE if OCCUPIED →409 |
+| 4-01 | Tables CRUD — **ADMIN**: `POST /api/admin/tables`, `PATCH /api/admin/tables/:id` `UNDER_MAINTENANCE` only (plus name/desc); **CASHIER** operational via `POST /api/tables/:id/operational-status` (`AVAILABLE`↔`OCCUPIED`) | `feature/tables` | 3-04 | BR-01/12, ADMIN `UNDER_MAINTENANCE` only (`AVAILABLE`→403), CASHIER `MAINTENANCE`→403, cannot MAINTENANCE if OCCUPIED →409 |
 | 4-02 | Pricing (`GET current`, `POST create` with snapshot logic, list) | `feature/pricing` | 4-01 | BR-20/21, only one isActive |
 | 4-03 | Cashiers (`GET/POST /api/admin/cashiers`, disable, reset pw, `cashierSchedules` CRUD) | `feature/cashiers` | 3-04 | BR-28/29, activity logged |
 | 4-04 | Products (`GET/POST/PATCH /api/products`) | `feature/orders` | 3-04 | BR-24 |

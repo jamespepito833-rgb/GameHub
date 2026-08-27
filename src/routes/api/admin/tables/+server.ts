@@ -43,9 +43,9 @@ export const POST: RequestHandler = async (event) => {
 	}
 	const { name, description, status } = parsed.data;
 
-	// OCCUPIED cannot be set manually on create
+	// OCCUPIED is operational (CASHIER) — ADMIN cannot create as OCCUPIED
 	if (status === 'OCCUPIED') {
-		return errorJson(400, 'E_INVALID_STATUS', 'Cannot create table as OCCUPIED');
+		return errorJson(403, 'E_FORBIDDEN', 'ADMIN cannot create table as OCCUPIED — use CASHIER operational');
 	}
 
 	const db = await getDb();

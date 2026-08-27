@@ -22,7 +22,7 @@ Defines what GameHub **will** and **will not** build for **MVP (Phase 1–7)**. 
 |---|--------|-----------------|
 | M1 | Authentication & Access Control | Login/logout, cookie session, RBAC (ADMIN/CASHIER/GUEST), protected routes server-side, password hashing |
 | M2 | User & Cashier Management | ADMIN CRUD cashiers, enable/disable, reset password, `cashierSchedules` (soft) |
-| M3 | Billiard Table Management | ADMIN CRUD tables, status AVAILABLE/OCCUPIED/MAINTENANCE, board for CASHIER |
+| M3 | Billiard Table Management | **CASHIER**: operational `AVAILABLE`↔`OCCUPIED` (via sessions/pay or explicit `POST /api/tables/:id/operational-status`), board; **ADMIN**: config + `UNDER_MAINTENANCE` (`MAINTENANCE`/`OUT_OF_SERVICE`), not operational |
 | M4 | Pricing Management | Flat hourly `pricing` with `effectiveFrom`, snapshot preservation, current rate display |
 | M5 | Session & Time Tracking | Start (walk-in/check-in), extend, end, server-authoritative `startedAt/endedAt`, per-minute billing, timer via timestamps |
 | M6 | Reservation Management | Public create/cancel/view (guest name+contact), CASHIER check-in/NO_SHOW, conflict + buffer enforcement |
@@ -83,13 +83,16 @@ Defines what GameHub **will** and **will not** build for **MVP (Phase 1–7)**. 
 |------------|-------|---------|-------|
 | View landing/rates/availability | ✅ | ✅ | ✅ |
 | Create/cancel own reservation | ✅ | ✅ | ✅ |
-| View all reservations / check-in | ❌ | ✅ | ✅ |
-| Start/extend/end sessions | ❌ | ✅ | ✅ |
-| Manage queue | ❌ | ✅ | ✅ |
-| Add/serve orders | ❌ | ✅ | ✅ |
-| Collect payment (Cash/GCash) | ❌ | ✅ | ✅ |
+| View all reservations / check-in | ❌ | ✅ | ❌ |
+| Start/extend/end sessions | ❌ | ✅ | ❌ |
+| Mark table AVAILABLE↔OCCUPIED (operational) | ❌ | ✅ | ❌ |
+| Set UNDER_MAINTENANCE (MAINTENANCE/OUT_OF_SERVICE) | ❌ | ❌ | ✅ |
+| Manage queue | ❌ | ✅ | ❌ |
+| Add/serve orders | ❌ | ✅ | ❌ |
+| Collect payment (Cash/GCash) | ❌ | ✅ | ❌ |
 | Void transaction | ❌ | ❌ | ✅ |
-| CRUD tables/pricing/products/cashiers | ❌ | ❌ | ✅ |
+| CRUD pricing/products/cashiers (config) | ❌ | ❌ | ✅ |
+| Create tables (config) | ❌ | ❌ | ✅ |
 | Dashboard/reports/logs | ❌ | ❌ | ✅ |
 
 ---

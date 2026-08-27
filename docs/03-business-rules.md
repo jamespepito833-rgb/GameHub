@@ -51,25 +51,32 @@
 
 ## 2. Tables
 
-### BR-01 — Maintenance Blocks Operations
-- **Rule:** If `tables.status in ["MAINTENANCE","OUT_OF_SERVICE"]` then: (a) `POST /api/reservations` → `422 E_TABLE_MAINTENANCE`, (b) `POST /api/sessions` / check-in → `422 E_TABLE_MAINTENANCE`, (c) queue SEAT to that table → `422`. Existing `ACTIVE` session on that table is **not** killed when table is set to MAINTENANCE; new operations are blocked.
-- **Transition:** `AVAILABLE → MAINTENANCE` allowed only if no `ACTIVE/EXTENDED` session on that table (else `409 E_TABLE_OCCUPIED`). `MAINTENANCE → AVAILABLE` allowed anytime by ADMIN.
-- **Test:** Create reservation on MAINTENANCE → 422. Start walk-in on MAINTENANCE → 422.
+### BR-01 — Maintenance Blocks Operations (ADMIN only)
+- **Rule:** If `tables.status in ["MAINTENANCE","OUT_OF_SERVICE"]` (`UNDER_MAINTENANCE`) then: (a) `POST /api/reservations` → `422 E_TABLE_MAINTENANCE`, (b) `POST /api/sessions` / check-in (CASHIER) → `422 E_TABLE_MAINTENANCE`, (c) queue SEAT (CASHIER) → `422`. Existing `ACTIVE` session on that table is **not** killed when table is set to `UNDER_MAINTENANCE` by ADMIN; new operations are blocked.
+- **Authorization:** Only `ADMIN` may set `UNDER_MAINTENANCE` (`MAINTENANCE`/`OUT_OF_SERVICE`) and remove it. `CASHIER` attempting `PATCH /api/admin/tables` with `UNDER_MAINTENANCE` → `403 E_FORBIDDEN`. Conversely, `ADMIN` may **not** set operational `AVAILABLE`/`OCCUPIED` (see BR-12).
+- **Transition:** `AVAILABLE → UNDER_MAINTENANCE` (ADMIN) allowed only if no `ACTIVE/EXTENDED` session on that table (else `409 E_TABLE_OCCUPIED`). `UNDER_MAINTENANCE → AVAILABLE` (ADMIN) allowed anytime by ADMIN.
+- **Test:** Create reservation on MAINTENANCE → 422. Start walk-in on MAINTENANCE → 422. CASHIER tries `MAINTENANCE` → 403. ADMIN tries `OCCUPIED` → 403.
 
 ### BR-05 — One Active Session Per Table
 - **Rule:** At most one `sessions` with `status in ["ACTIVE","EXTENDED"]` per `tableId`. Enforced by **partial unique index** + application check in transaction.
 - **Error:** `409 E_TABLE_OCCUPIED` — "Table already occupied until {expectedEndAt}".
 - **Test:** Two concurrent `POST /api/sessions` same table → one 201, one 409.
 
-### BR-12 — Table Status Transitions (authoritative)
+### BR-12 — Table Status Transitions (authoritative, role-separated)
 
 ```
-AVAILABLE --start/checkin--> OCCUPIED --end/pay--> AVAILABLE
-AVAILABLE --admin--> MAINTENANCE/OUT_OF_SERVICE --admin--> AVAILABLE
-OCCUPIED --admin set MAINTENANCE--> stays OCCUPIED until session COMPLETED, then MAINTENANCE
-RESERVED is logical (derived from future CONFIRMED reservation), not stored; board shows RESERVED when next reservation within 30min
+Operational (CASHIER):
+  AVAILABLE --start/checkin (CASHIER)--> OCCUPIED --end/pay (CASHIER)--> AVAILABLE
+  OCCUPIED --CASHIER mark AVAILABLE--> AVAILABLE  (explicit operational, e.g., after clean)
+  AVAILABLE --CASHIER mark OCCUPIED--> OCCUPIED    (explicit operational, e.g., walk-in without session)
+
+Maintenance (ADMIN):
+  AVAILABLE --ADMIN--> UNDER_MAINTENANCE (MAINTENANCE/OUT_OF_SERVICE) --ADMIN--> AVAILABLE
+  OCCUPIED --ADMIN set UNDER_MAINTENANCE--> stays OCCUPIED until session COMPLETED, then UNDER_MAINTENANCE
+  RESERVED is logical (derived from future CONFIRMED reservation), not stored; board shows RESERVED when next reservation within 30min
 ```
-- Table status is **derived + stored**: stored `status` is AVAILABLE/OCCUPIED/MAINTENANCE/OUT_OF_SERVICE; `RESERVED` is computed for display but not stored as status (prevents split-brain). `transactions` completion sets table → `AVAILABLE` (or keeps MAINTENANCE if admin flagged).
+- **Role separation:** `AVAILABLE`↔`OCCUPIED` transitions are **CASHIER-only** (via `POST /api/sessions`, `POST /api/transactions` → `AVAILABLE`, or explicit `POST /api/tables/:id/operational-status`). `ADMIN` attempting operational `403 E_FORBIDDEN`. `UNDER_MAINTENANCE` transitions are **ADMIN-only** (`PATCH /api/admin/tables`); `CASHIER` attempting `403`.
+- Table status is **derived + stored**: stored `status` is `AVAILABLE`/`OCCUPIED`/`MAINTENANCE`/`OUT_OF_SERVICE` (`UNDER_MAINTENANCE` = `MAINTENANCE`/`OUT_OF_SERVICE` alias, DB keeps `MAINTENANCE`); `RESERVED` is computed for display but not stored.
 
 ---
 
@@ -219,16 +226,17 @@ WAITING --timeout 2h no call?--> remains WAITING (no auto-expire except after CA
 
 ## 9. Auth & Access Control
 
-### BR-28 — Role Matrix
+### BR-28 — Role Matrix (Corrected: CASHIER = Operational, ADMIN = Maintenance)
 
 | Resource | GUEST | CASHIER | ADMIN |
 |----------|-------|---------|-------|
 | `GET /`, `/tables`, `/rates`, `POST /reservations`, `GET /reservations/:id?contact=` | ✅ | ✅ | ✅ |
 | `POST /reservations/:id/cancel` (own) | ✅ (with contact) | ✅ | ✅ |
-| `GET /api/reservations` (all), check-in, sessions, queue, orders, `POST /transactions` | ❌ 403 | ✅ | ✅ |
-| `POST /transactions/:id/void`, manage cashiers/tables/pricing, `GET /admin/*`, `GET /activity-logs` | ❌ | ❌ 403 | ✅ |
+| **Operational:** `GET /api/tables/status`, `POST /api/tables/:id/operational-status` (`AVAILABLE`↔`OCCUPIED`), `POST /api/sessions`, `POST /api/sessions/:id/extend|end`, `GET /api/reservations` (all), `POST /api/reservations/:id/checkin`, `POST /api/queue`, `POST /api/orders`, `POST /api/transactions` (pay), `GET /api/sessions/:id/bill` | ❌ 403 | ✅ | ❌ 403 |
+| **Maintenance:** `PATCH /api/admin/tables/:id` with `UNDER_MAINTENANCE` (`MAINTENANCE`/`OUT_OF_SERVICE`), `POST /api/admin/tables`, `DELETE /api/admin/tables/:id`, manage `pricing`/`products`/`cashiers`, `GET /admin/*`, `GET /activity-logs`, `POST /transactions/:id/void` | ❌ | ❌ 403 | ✅ |
 | Manage own password | — | ✅ | ✅ |
 
+- **Operational vs Maintenance split:** `CASHIER` owns `AVAILABLE`↔`OCCUPIED`; `ADMIN` owns `UNDER_MAINTENANCE`. Cross-attempt → `403 E_FORBIDDEN` with distinct code, not just hidden UI.
 - Every protected route checks `locals.user.role` server-side (`hooks.server.ts` + `+layout.server.ts`); hiding UI is not authorization.
 - Passwords: `bcrypt` hash (cost 12), never returned; login rate-limited (5/min per IP).
 

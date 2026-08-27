@@ -38,15 +38,19 @@ export const PATCH: RequestHandler = async (event) => {
 	}
 	const updates = parsed.data as Record<string, unknown>;
 
-	// Disallow manual OCCUPIED
-	if (updates.status === 'OCCUPIED') {
-		return errorJson(400, 'E_INVALID_STATUS', 'Cannot manually set status to OCCUPIED');
-	}
-
 	const db = await getDb();
 	const _id = new ObjectId(id);
 	const existing = await db.collection('tables').findOne({ _id });
 	if (!existing) return errorJson(404, 'E_NOT_FOUND', 'Table not found');
+
+	// Role-separated: ADMIN may only touch UNDER_MAINTENANCE + config.
+	// OCCUPIED always forbidden for ADMIN; AVAILABLE only allowed when removing UNDER_MAINTENANCE.
+	if (updates.status === 'OCCUPIED') {
+		return errorJson(403, 'E_FORBIDDEN', 'ADMIN cannot set OCCUPIED — use CASHIER operational endpoint');
+	}
+	if (updates.status === 'AVAILABLE' && !['MAINTENANCE', 'OUT_OF_SERVICE'].includes(existing.status as string)) {
+		return errorJson(403, 'E_FORBIDDEN', 'ADMIN cannot set AVAILABLE except when removing UNDER_MAINTENANCE');
+	}
 
 	// BR-01 / BR-12: cannot set MAINTENANCE/OUT_OF_SERVICE if active session exists
 	if (updates.status === 'MAINTENANCE' || updates.status === 'OUT_OF_SERVICE') {
