@@ -56,11 +56,6 @@
 			<a href="/rates" class="nav-link">Rates</a>
 			<a href="/reserve" class="nav-link">Reserve</a>
 		</div>
-
-		<a href="/login" class="nav-cta" data-active={activeBtn === 'login'} onpointerdown={() => (activeBtn = 'login')} onpointerup={() => (activeBtn = null)} onpointerleave={() => (activeBtn = null)}>
-			<span>Staff Login</span>
-			<span class="cta-arrow" aria-hidden="true">→</span>
-		</a>
 	</div>
 	<div class="nav-hairline" aria-hidden="true"></div>
 </nav>
@@ -260,7 +255,7 @@
 		<div class="info-card">
 			<h3>Contact</h3>
 			<p>Reserve: <a href="/reserve">/reserve</a></p>
-			<p class="muted">Staff: <a href="/login">/login</a> • Board: <a href="/board">/board</a></p>
+			<p class="muted">Bukidnon • Walk-ins welcome</p>
 		</div>
 	</div>
 </section>
@@ -276,7 +271,6 @@
 			<a href="/tables">Tables</a>
 			<a href="/rates">Rates</a>
 			<a href="/reserve">Reserve</a>
-			<a href="/admin/dashboard">Admin</a>
 		</nav>
 	</div>
 </footer>
@@ -449,40 +443,6 @@
 	.nav-link:focus-visible {
 		outline: 2px solid rgba(212, 175, 55, 0.9);
 		outline-offset: 2px;
-	}
-	.nav-cta {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		padding: 9px 14px;
-		border-radius: 999px;
-		background: #f5f1e8;
-		color: #0a0a0a;
-		text-decoration: none;
-		font-weight: 650;
-		font-size: 0.88rem;
-		letter-spacing: 0.01em;
-		border: 1px solid rgba(212, 175, 55, 0.18);
-		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
-		/* Press is instant, on pointer-down */
-		transition:
-			transform 100ms ease-out,
-			background 160ms ease,
-			box-shadow 160ms ease;
-	}
-	.nav-cta:hover {
-		background: #fff;
-	}
-	.nav-cta:active,
-	.nav-cta[data-active='true'] {
-		transform: scale(0.97);
-	}
-	.nav-cta:focus-visible {
-		outline: 2px solid rgba(212, 175, 55, 0.9);
-		outline-offset: 2px;
-	}
-	.cta-arrow {
-		opacity: 0.7;
 	}
 
 	/* ---------- Hero ---------- */
