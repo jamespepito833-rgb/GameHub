@@ -25,3 +25,7 @@ vite.config.ts.timestamp-*
 # opencode skills (installed, lockfile committed)
 .agents/
 
+
+# Local MongoDB data (do not commit)
+data/
+
