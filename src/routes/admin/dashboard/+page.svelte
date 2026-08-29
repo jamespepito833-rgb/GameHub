@@ -53,11 +53,6 @@
 		<p class="stat-meta">Sessions</p>
 	</article>
 	<article class="stat">
-		<p class="stat-kicker">Queue</p>
-		<p class="stat-value">{data.stats.queueWaiting}</p>
-		<p class="stat-meta">Waiting</p>
-	</article>
-	<article class="stat">
 		<p class="stat-kicker">Tables</p>
 		<p class="stat-value">{data.stats.tablesOccupied}/{data.stats.tablesTotal}</p>
 		<p class="stat-meta">{data.stats.tablesMaintenance} maintenance</p>

@@ -18,7 +18,7 @@ export const GET: RequestHandler = async (event) => {
 	startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
 	const startOfMonth = new Date(startOfDay.getFullYear(), startOfDay.getMonth(), 1);
 
-	const [incomeToday, incomeWeek, incomeMonth, activeSessions, queueWaiting, tables] = await Promise.all([
+	const [incomeToday, incomeWeek, incomeMonth, activeSessions, tables] = await Promise.all([
 		db
 			.collection('transactions')
 			.aggregate([{ $match: { status: 'PAID', paidAt: { $gte: startOfDay } } }, { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } }])
@@ -32,7 +32,6 @@ export const GET: RequestHandler = async (event) => {
 			.aggregate([{ $match: { status: 'PAID', paidAt: { $gte: startOfMonth } } }, { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } }])
 			.toArray(),
 		db.collection('sessions').countDocuments({ status: { $in: ['ACTIVE', 'EXTENDED'] } }),
-		db.collection('queueEntries').countDocuments({ status: 'WAITING' }),
 		db.collection('tables').find().toArray()
 	]);
 
@@ -63,7 +62,6 @@ export const GET: RequestHandler = async (event) => {
 			monthCount: incomeMonth[0]?.count ?? 0
 		},
 		activeSessions,
-		queueWaiting,
 		tables: {
 			total: tables.length,
 			available: tables.filter((t) => t.status === 'AVAILABLE').length,

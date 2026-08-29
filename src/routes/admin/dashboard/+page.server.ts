@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
 	const startOfMonth = new Date(startOfDay.getFullYear(), startOfDay.getMonth(), 1);
 
-	const [incomeToday, incomeWeek, incomeMonth, activeSessions, queueWaiting, tables, recentLogs] = await Promise.all([
+	const [incomeToday, incomeWeek, incomeMonth, activeSessions, tables, recentLogs] = await Promise.all([
 		db
 			.collection('transactions')
 			.aggregate([{ $match: { status: 'PAID', paidAt: { $gte: startOfDay } } }, { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } }])
@@ -24,7 +24,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 			.aggregate([{ $match: { status: 'PAID', paidAt: { $gte: startOfMonth } } }, { $group: { _id: null, total: { $sum: '$total' } } }])
 			.toArray(),
 		db.collection('sessions').countDocuments({ status: { $in: ['ACTIVE', 'EXTENDED'] } }),
-		db.collection('queueEntries').countDocuments({ status: 'WAITING' }),
 		db.collection('tables').find().toArray(),
 		db.collection('activityLogs').find().sort({ createdAt: -1 }).limit(5).toArray()
 	]);
@@ -36,7 +35,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 			incomeWeek: incomeWeek[0]?.total ?? 0,
 			incomeMonth: incomeMonth[0]?.total ?? 0,
 			activeSessions,
-			queueWaiting,
 			tablesTotal: tables.length,
 			tablesAvailable: tables.filter((t) => t.status === 'AVAILABLE').length,
 			tablesOccupied: tables.filter((t) => t.status === 'OCCUPIED').length,

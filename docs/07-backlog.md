@@ -55,7 +55,7 @@
 | 4-03 | Cashiers (`GET/POST /api/admin/cashiers`, disable, reset pw, `cashierSchedules` CRUD) | `feature/cashiers` | 3-04 | BR-28/29, activity logged |
 | 4-04 | Products (`GET/POST/PATCH /api/products`) | `feature/orders` | 3-04 | BR-24 |
 | 4-05 | Admin UI: `/ (admin)/tables`, `/pricing`, `/cashiers`, `/products` | `feature/admin-ui` | 4-01..04 | Server-validated forms |
-| 4-06 | Dashboard (`GET /api/admin/dashboard` aggs: income, utilization, hours, queue) + page | `feature/reports` | 5-? (needs sessions/transactions) | Poll 30s, correct aggs |
+| 4-06 | Dashboard (`GET /api/admin/dashboard` aggs: income, utilization, hours) + page | `feature/reports` | 5-? (needs sessions/transactions) | Poll 30s, correct aggs |
 | 4-07 | Reports (`GET /api/admin/reports?type=&from=&to=`) + Activity Logs (`GET /api/admin/logs`) | `feature/reports` | 3-04 | BR-30, filterable, immutable |
 
 ---
@@ -67,10 +67,9 @@
 | 5-01 | Table Status Board (`GET /api/tables/status` + page `(cashier)/board` with timers) | `feature/sessions` | 4-01 | Derived timers, RESERVED computed |
 | 5-02 | Sessions: `POST /api/sessions` (walk-in), `POST /sessions/:id/extend`, `POST /sessions/:id/end` | `feature/sessions` | 5-01, 4-02 | BR-05..08, BR-17/18 |
 | 5-03 | Reservations: `POST /api/reservations` (public), `GET` (cashier list), `POST /reservations/:id/checkin` (atomic) + `POST /cancel` + sweepers (NO_SHOW/EXPIRED) | `feature/reservations` | 5-02 | BR-03/04/09/10/13/14/15 |
-| 5-04 | Queue: `POST/GET /api/queue`, `POST /queue/:id/call|seat|cancel`, sweeper for CALLED→EXPIRED | `feature/queue` | 5-02 | BR-22/23, FIFO |
-| 5-05 | Orders: `POST /api/orders`, `PATCH /orders/:id` (SERVED/CANCELLED) + `GET by sessionId` | `feature/orders` | 4-04, 5-02 | BR-24, snapshot |
-| 5-06 | Payments: `GET /api/sessions/:id/bill`, `POST /api/transactions` (pay), `POST /transactions/:id/void` | `feature/payments` | 5-02, 5-05 | BR-19/25/26/27, transaction atomic |
-| 5-07 | Cashier pages: `(cashier)/reservations`, `/queue`, `/sessions/[id]` with extend/end/bill | `feature/cashier-ui` | 5-01..06 | No giant components |
+| 5-04 | Orders: `POST /api/orders`, `PATCH /orders/:id` (SERVED/CANCELLED) + `GET by sessionId` | `feature/orders` | 4-04, 5-02 | BR-22, snapshot |
+| 5-05 | Payments: `GET /api/sessions/:id/bill`, `POST /api/transactions` (pay), `POST /transactions/:id/void` | `feature/payments` | 5-02, 5-04 | BR-19/23,24,25, transaction atomic |
+| 5-06 | Cashier pages: `(cashier)/reservations`, `/sessions/[id]` with extend/end/bill | `feature/cashier-ui` | 5-01..05 | No giant components |
 
 ---
 
@@ -89,7 +88,7 @@
 | ID | Title | Branch | Depends | Acceptance |
 |----|-------|--------|---------|------------|
 | 7-01 | E2E: Guest reserve → Cashier check-in → Play → Extend → Order → End → Pay → COMPLETED → AVAILABLE | `feature/integration` | 5-06, 6-02 | Manual + Playwright green |
-| 7-02 | E2E: Walk-in → Queue → Seat → Play → Pay | `feature/integration` | 5-04 | — |
+| 7-02 | E2E: Walk-in → Play → Pay (no queue) | `feature/integration` | 5-03 | — |
 | 7-03 | E2E: NO_SHOW + cancellation + void paths | `feature/integration` | 7-01 | — |
 
 ---
