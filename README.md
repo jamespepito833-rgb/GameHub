@@ -46,3 +46,7 @@ bun run build
 - Timer architecture: store `startedAt`/`endedAt`, frontend computes elapsed — no per-second DB writes.
 - ReplicaSet `rs0` recommended for transactions (see `docs/05-nosql-design.md` §9). App works without it for Phase 1, but Phase 5 transactions require it.
 - To enable replicaSet locally: see `mongod.cfg` `replSetName: rs0` + `rs.initiate()` in mongosh.
+
+## Progress � 2026-08-29 14:47
+- QA ? main sync, MongoDB local data fix, green contribution trigger
+
