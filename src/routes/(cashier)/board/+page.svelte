@@ -183,7 +183,7 @@
 	{/each}
 </div>
 
-<p class="foot"><small>BR-07 • <a href="/queue">Queue</a> • <a href="/admin/dashboard">Dashboard</a></small></p>
+<p class="foot"><small>BR-07 • <a href="/admin/dashboard">Dashboard</a></small></p>
 
 <style>
 	.head {

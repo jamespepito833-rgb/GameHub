@@ -52,16 +52,6 @@ export async function ensureIndexes(db: Db): Promise<void> {
 	await db.collection('orders').createIndex({ tableId: 1, status: 1 });
 	await db.collection('orders').createIndex({ status: 1, createdAt: -1 });
 
-	// queueEntries
-	await db.collection('queueEntries').createIndex({ status: 1, createdAt: 1 });
-	await db
-		.collection('queueEntries')
-		.createIndex(
-			{ customerContact: 1, status: 1 },
-			{ partialFilterExpression: { status: { $in: ['WAITING', 'CALLED'] } } }
-		);
-	await db.collection('queueEntries').createIndex({ createdAt: 1 });
-
 	// cashierSchedules
 	await db.collection('cashierSchedules').createIndex({ cashierId: 1, dayOfWeek: 1 });
 

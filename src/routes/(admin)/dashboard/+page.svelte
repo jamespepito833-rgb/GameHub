@@ -20,7 +20,6 @@
 	<div style="border:1px solid #ddd;padding:1rem;border-radius:8px;"><strong>Week</strong><br />₱{data.stats.incomeWeek}</div>
 	<div style="border:1px solid #ddd;padding:1rem;border-radius:8px;"><strong>Month</strong><br />₱{data.stats.incomeMonth}</div>
 	<div style="border:1px solid #ddd;padding:1rem;border-radius:8px;"><strong>Active Sessions</strong><br />{data.stats.activeSessions}</div>
-	<div style="border:1px solid #ddd;padding:1rem;border-radius:8px;"><strong>Queue Waiting</strong><br />{data.stats.queueWaiting}</div>
 	<div style="border:1px solid #ddd;padding:1rem;border-radius:8px;"><strong>Tables</strong><br />{data.stats.tablesAvailable} / {data.stats.tablesTotal} available<br />{data.stats.tablesOccupied} occupied, {data.stats.tablesMaintenance} maintenance</div>
 </section>
 

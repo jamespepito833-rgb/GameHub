@@ -26,11 +26,10 @@ Defines what GameHub **will** and **will not** build for **MVP (Phase 1–7)**. 
 | M4 | Pricing Management | Flat hourly `pricing` with `effectiveFrom`, snapshot preservation, current rate display |
 | M5 | Session & Time Tracking | Start (walk-in/check-in), extend, end, server-authoritative `startedAt/endedAt`, per-minute billing, timer via timestamps |
 | M6 | Reservation Management | Public create/cancel/view (guest name+contact), CASHIER check-in/NO_SHOW, conflict + buffer enforcement |
-| M7 | Queue Management | FIFO WAITING→CALLED→SEATED, preference-only, 10min CALLED expiry, one-per-contact |
-| M8 | Payment & Transaction | Bill calc (session+orders), Cash+GCash, full payment, PAID→COMPLETED, ADMIN void with reason |
-| M9 | Food & Beverage Ordering | `products` catalog (ADMIN), CASHIER add `orders` to session, PENDING→SERVED, snapshot pricing |
-| M10 | Dashboard, Reports & Audit | ADMIN dashboard (income today/week/month, utilization, hours), reports by date range, `activityLogs` append-only |
-| M11 | Customer/Public Interface | Landing, table availability, rates, reservation form, confirmation/cancellation |
+| M7 | Payment & Transaction | Bill calc (session+orders), Cash+GCash, full payment, PAID→COMPLETED, ADMIN void with reason |
+| M8 | Food & Beverage Ordering | `products` catalog (ADMIN), CASHIER add `orders` to session, PENDING→SERVED, snapshot pricing |
+| M9 | Dashboard, Reports & Audit | ADMIN dashboard (income today/week/month, utilization, hours), reports by date range, `activityLogs` append-only |
+| M10 | Customer/Public Interface | Landing, table availability, rates, reservation form, confirmation/cancellation |
 
 ### 2.2 Cross-Cutting MVP
 
@@ -87,7 +86,6 @@ Defines what GameHub **will** and **will not** build for **MVP (Phase 1–7)**. 
 | Start/extend/end sessions | ❌ | ✅ | ❌ |
 | Mark table AVAILABLE↔OCCUPIED (operational) | ❌ | ✅ | ❌ |
 | Set UNDER_MAINTENANCE (MAINTENANCE/OUT_OF_SERVICE) | ❌ | ❌ | ✅ |
-| Manage queue | ❌ | ✅ | ❌ |
 | Add/serve orders | ❌ | ✅ | ❌ |
 | Collect payment (Cash/GCash) | ❌ | ✅ | ❌ |
 | Void transaction | ❌ | ❌ | ✅ |
@@ -125,7 +123,7 @@ Defines what GameHub **will** and **will not** build for **MVP (Phase 1–7)**. 
 | Phase 2 | NoSQL design + indexes + validation (05) | All collections |
 | Phase 3 | Auth (login/logout/RBAC/protected routes) | M1 |
 | Phase 4 | Admin: tables, pricing, cashiers, dashboard, logs | M2,M3,M4,M10 |
-| Phase 5 | Cashier: board, sessions, timers, queue, orders, payments | M5,M7,M8,M9 |
+| Phase 5 | Cashier: board, sessions, timers, orders, payments | M5,M7,M8 |
 | Phase 6 | Customer: landing, availability, reservation | M6,M11 |
 | Phase 7 | Integration E2E (reserve→checkin→extend→order→pay) | All |
 | Phase 8 | Tests + security + regressions | BR-32 |

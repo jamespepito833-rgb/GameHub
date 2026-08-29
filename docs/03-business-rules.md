@@ -35,24 +35,22 @@
 | BR-19 | Billing | Per-minute ceiling billing | W5 |
 | BR-20 | Pricing | Flat hourly with effectiveFrom, snapshot preserved | W1,W4,W5 |
 | BR-21 | History | Historical records immutable / snapshot | W5,W6 |
-| BR-22 | Queue | FIFO + preference-only + reservation priority | W3,W7 |
-| BR-23 | Queue | Queue lifecycle & CALLED expiry (10min) | W7 |
-| BR-24 | Orders | Orders linked to session, snapshot pricing | W6 |
-| BR-25 | Payments | Methods Cash + GCash | W5 |
-| BR-26 | Payments | Full payment required, no partial | W5 |
-| BR-27 | Payments | Void requires ADMIN + reason, never delete | W5 |
-| BR-28 | AuthZ | Role matrix (ADMIN/CASHIER/GUEST) | W8,W9 |
-| BR-29 | Schedules | Cashier schedule soft enforcement | W8 |
-| BR-30 | Audit | Activity log immutability & retention | All |
-| BR-31 | Privacy | PII visibility | W1,W2 |
-| BR-32 | Validation | Server-side validation & error shape | All |
+| BR-22 | Orders | Orders linked to session, snapshot pricing | W6 |
+| BR-23 | Payments | Methods Cash + GCash | W5 |
+| BR-24 | Payments | Full payment required, no partial | W5 |
+| BR-25 | Payments | Void requires ADMIN + reason, never delete | W5 |
+| BR-26 | AuthZ | Role matrix (ADMIN/CASHIER/GUEST) | W8,W9 |
+| BR-27 | Schedules | Cashier schedule soft enforcement | W8 |
+| BR-28 | Audit | Activity log immutability & retention | All |
+| BR-29 | Privacy | PII visibility | W1,W2 |
+| BR-30 | Validation | Server-side validation & error shape | All |
 
 ---
 
 ## 2. Tables
 
 ### BR-01 — Maintenance Blocks Operations (ADMIN only)
-- **Rule:** If `tables.status in ["MAINTENANCE","OUT_OF_SERVICE"]` (`UNDER_MAINTENANCE`) then: (a) `POST /api/reservations` → `422 E_TABLE_MAINTENANCE`, (b) `POST /api/sessions` / check-in (CASHIER) → `422 E_TABLE_MAINTENANCE`, (c) queue SEAT (CASHIER) → `422`. Existing `ACTIVE` session on that table is **not** killed when table is set to `UNDER_MAINTENANCE` by ADMIN; new operations are blocked.
+- **Rule:** If `tables.status in ["MAINTENANCE","OUT_OF_SERVICE"]` (`UNDER_MAINTENANCE`) then: (a) `POST /api/reservations` → `422 E_TABLE_MAINTENANCE`, (b) `POST /api/sessions` / check-in (CASHIER) → `422 E_TABLE_MAINTENANCE`. Existing `ACTIVE` session on that table is **not** killed when table is set to `UNDER_MAINTENANCE` by ADMIN; new operations are blocked.
 - **Authorization:** Only `ADMIN` may set `UNDER_MAINTENANCE` (`MAINTENANCE`/`OUT_OF_SERVICE`) and remove it. `CASHIER` attempting `PATCH /api/admin/tables` with `UNDER_MAINTENANCE` → `403 E_FORBIDDEN`. Conversely, `ADMIN` may **not** set operational `AVAILABLE`/`OCCUPIED` (see BR-12).
 - **Transition:** `AVAILABLE → UNDER_MAINTENANCE` (ADMIN) allowed only if no `ACTIVE/EXTENDED` session on that table (else `409 E_TABLE_OCCUPIED`). `UNDER_MAINTENANCE → AVAILABLE` (ADMIN) allowed anytime by ADMIN.
 - **Test:** Create reservation on MAINTENANCE → 422. Start walk-in on MAINTENANCE → 422. CASHIER tries `MAINTENANCE` → 403. ADMIN tries `OCCUPIED` → 403.
@@ -148,7 +146,7 @@ ENDED --extend--> EXTENDED // allowed per Q11 before payment (reopens)
 ### BR-11 — Atomic Transitions
 - Check-in (`reservation→CHECKED_IN` + `session` + `table→OCCUPIED`) in **MongoDB transaction**.
 - Payment (`transaction PAID` + `session→COMPLETED` + `table→AVAILABLE`) in transaction.
-- Queue SEAT (`queue→SEATED` + `session` + `table→OCCUPIED`) in transaction.
+- Queue SEAT removed (queue feature deleted).
 
 ### BR-16 — Expected End & Overrun
 - `expectedEndAt = startedAt + durationMinutes` (initial) then incremented per extension. If `now() > expectedEndAt` and not yet `ENDED` → considered **overrun**; still billable per-minute until `endedAt`. UI shows negative remaining.
@@ -180,29 +178,11 @@ ENDED --extend--> EXTENDED // allowed per Q11 before payment (reopens)
 
 ---
 
-## 6. Queue
-
-### BR-22 — FIFO + Preference-Only + Reservation Priority
-- **FIFO:** `WAITING` ordered by `createdAt ASC` (and `_id` tie-break).
-- **Preference:** `preferredTableId` is hint, not guarantee; SEAT can assign any AVAILABLE table.
-- **Reservation priority:** A table with upcoming `CONFIRMED` reservation within 30min is not offered to queue (shown RESERVED).
-
-### BR-23 — Queue Lifecycle
-
-```
-WAITING --call--> CALLED --seat--> SEATED (terminal, spawns session)
-WAITING/CALLED --cancel--> CANCELLED
-CALLED --10min timeout--> EXPIRED (via sweeper)
-WAITING --timeout 2h no call?--> remains WAITING (no auto-expire except after CALLED)
-```
-- **One per contact:** One `WAITING`/`CALLED` per `customerContact`; else `409 E_ALREADY_IN_QUEUE`.
-- **CALLED expiry:** `now - calledAt > 10min` → sweeper or on read → `EXPIRED`, next WAITING auto-called (or cashier manually calls).
-
 ---
 
 ## 7. Orders & Products
 
-### BR-24 — Orders Linked to Session, Snapshot Pricing
+### BR-22 — Orders Linked to Session, Snapshot Pricing
 - `orders` require `sessionId` with `status in [ACTIVE,EXTENDED,ENDED]` (not COMPLETED/VOIDED). `products` must be `isAvailable=true`.
 - Each line: `{ productId, nameSnapshot, unitPriceSnapshot, qty (>=1), lineTotal = qty*unitPriceSnapshot }`. `total = Σ lineTotal`.
 - **Status:** `PENDING → SERVED`; `PENDING → CANCELLED` allowed; `SERVED → CANCELLED` requires ADMIN void.
@@ -212,27 +192,27 @@ WAITING --timeout 2h no call?--> remains WAITING (no auto-expire except after CA
 
 ## 8. Payments
 
-### BR-25 — Methods
+### BR-23 — Methods
 - Enum `["CASH","GCASH"]`. GCash requires `gcashRef?` (6–20 chars) when method=GCASH.
 - Else `400 E_INVALID_PAYMENT_METHOD`.
 
-### BR-26 — Full Payment Required
+### BR-24 — Full Payment Required
 - `amountTendered >= total`; else `422 E_INSUFFICIENT_PAYMENT`. No partial/deposit in v1. `change = amountTendered - total` (≥0).
 
-### BR-27 — Void Requires ADMIN + Reason
+### BR-25 — Void Requires ADMIN + Reason
 - `POST /api/transactions/:id/void { reason: string(10–500) }` → `role==ADMIN` else `403 E_FORBIDDEN`. Creates `VOIDED` transaction (does not delete), sets `voidedAt`, `voidedBy`, `voidReason`, logs `TRANSACTION_VOIDED`. Original `PAID` remains for audit (flagged voided). Session stays `COMPLETED` (void does not revert session).
 
 ---
 
 ## 9. Auth & Access Control
 
-### BR-28 — Role Matrix (Corrected: CASHIER = Operational, ADMIN = Maintenance)
+### BR-26 — Role Matrix (Corrected: CASHIER = Operational, ADMIN = Maintenance)
 
 | Resource | GUEST | CASHIER | ADMIN |
 |----------|-------|---------|-------|
 | `GET /`, `/tables`, `/rates`, `POST /reservations`, `GET /reservations/:id?contact=` | ✅ | ✅ | ✅ |
 | `POST /reservations/:id/cancel` (own) | ✅ (with contact) | ✅ | ✅ |
-| **Operational:** `GET /api/tables/status`, `POST /api/tables/:id/operational-status` (`AVAILABLE`↔`OCCUPIED`), `POST /api/sessions`, `POST /api/sessions/:id/extend|end`, `GET /api/reservations` (all), `POST /api/reservations/:id/checkin`, `POST /api/queue`, `POST /api/orders`, `POST /api/transactions` (pay), `GET /api/sessions/:id/bill` | ❌ 403 | ✅ | ❌ 403 |
+| **Operational:** `GET /api/tables/status`, `POST /api/tables/:id/operational-status` (`AVAILABLE`↔`OCCUPIED`), `POST /api/sessions`, `POST /api/sessions/:id/extend|end`, `GET /api/reservations` (all), `POST /api/reservations/:id/checkin`, `POST /api/orders`, `POST /api/transactions` (pay), `GET /api/sessions/:id/bill` | ❌ 403 | ✅ | ❌ 403 |
 | **Maintenance:** `PATCH /api/admin/tables/:id` with `UNDER_MAINTENANCE` (`MAINTENANCE`/`OUT_OF_SERVICE`), `POST /api/admin/tables`, `DELETE /api/admin/tables/:id`, manage `pricing`/`products`/`cashiers`, `GET /admin/*`, `GET /activity-logs`, `POST /transactions/:id/void` | ❌ | ❌ 403 | ✅ |
 | Manage own password | — | ✅ | ✅ |
 
@@ -240,21 +220,21 @@ WAITING --timeout 2h no call?--> remains WAITING (no auto-expire except after CA
 - Every protected route checks `locals.user.role` server-side (`hooks.server.ts` + `+layout.server.ts`); hiding UI is not authorization.
 - Passwords: `bcrypt` hash (cost 12), never returned; login rate-limited (5/min per IP).
 
-### BR-29 — Cashier Schedule Soft Enforcement
+### BR-27 — Cashier Schedule Soft Enforcement
 - `cashierSchedules` is informational; login outside schedule **allowed** but logs `LOGIN_OUTSIDE_SCHEDULE` warning and shows banner. Hard block is future if needed.
 
 ---
 
 ## 10. Audit & Privacy
 
-### BR-30 — Activity Log Immutability & Retention
+### BR-28 — Activity Log Immutability & Retention
 - Every state-changing action writes `activityLogs: { actorId, actorRole, action, targetCollection, targetId, before?, after?, ip, createdAt }`. Logs are **append-only** (no UPDATE/DELETE API); retention **forever** (no TTL). Admin can read/filter, cannot delete.
-- Actions logged: `LOGIN`, `LOGOUT`, `RESERVATION_CREATED/CANCELLED/CHECKED_IN/NO_SHOW`, `SESSION_STARTED/EXTENDED/ENDED/COMPLETED`, `QUEUE_*`, `ORDER_*`, `TRANSACTION_PAID/VOIDED`, `TABLE_*`, `PRICING_*`, `CASHIER_*`.
+- Actions logged: `LOGIN`, `LOGOUT`, `RESERVATION_CREATED/CANCELLED/CHECKED_IN/NO_SHOW`, `SESSION_STARTED/EXTENDED/ENDED/COMPLETED`, `ORDER_*`, `TRANSACTION_PAID/VOIDED`, `TABLE_*`, `PRICING_*`, `CASHIER_*`.
 
-### BR-31 — PII Visibility
+### BR-29 — PII Visibility
 - `customerContact`/`customerName` stored plaintext (needed for operations) but: public endpoints mask contact (`09****1234`); `CASHIER`/`ADMIN` see full; logs store `contactHash` not plaintext where feasible.
 
-### BR-32 — Server-Side Validation & Error Shape
+### BR-30 — Server-Side Validation & Error Shape
 - All inputs validated with `zod` (or equivalent) server-side; client validation is UX only.
 - **Error shape:** `{ error: { code: "E_...", message: string, details?: object } }` with HTTP status. `code` is stable for frontend mapping. Never expose stack traces, password hashes, or Mongo internals.
 - **Idempotency keys:** Check-in and Pay accept `Idempotency-Key` header; replay returns original result.
@@ -270,8 +250,6 @@ WAITING --timeout 2h no call?--> remains WAITING (no auto-expire except after CA
 | Walk-in duration | 15–480 min | W3 |
 | Grace NO_SHOW | 15 min | BR-14 |
 | Cleaning buffer | 10 min | BR-03 |
-| CALLED expiry | 10 min | BR-23 |
-| Queue FIFO | `createdAt ASC` | BR-22 |
 | Billing unit | 1 min ceil | BR-19 |
 | Currency | PHP (₱), 2 decimals | — |
 
@@ -288,11 +266,13 @@ WAITING --timeout 2h no call?--> remains WAITING (no auto-expire except after CA
 | BR-14 | Start 10:00, check at 10:10 → OK | Check at 10:20 → NO_SHOW |
 | BR-17 | Extend 30min → expectedEnd +30, status EXTENDED | Extend 5min → 400; extend 300min → 400 |
 | BR-18 | No future reservation → extend OK | Future reservation 11:00, extend to 11:30 → 409 |
-| BR-26 | Pay exact → PAID | Pay -1 → 422 |
-| BR-27 | ADMIN void with reason → VOIDED | CASHIER void → 403 |
-| BR-28 | CASHIER hits /admin → 403 | GUEST hits /api/sessions → 401/403 |
+| BR-24 | Pay exact → PAID | Pay -1 → 422 |
+| BR-25 | ADMIN void with reason → VOIDED | CASHIER void → 403 |
+| BR-26 | CASHIER hits /admin → 403 | GUEST hits /api/sessions → 401/403 |
 
 ---
 
 *End of 03-business-rules.md — Phase 0 Planning. Next: 04-system-scope.md, 05-nosql-design.md.*
+
+
 

@@ -50,7 +50,6 @@ C:\GameHub\
 │  │  │  ├─ reservations\         # POST / GET / [id]/cancel / [id]/checkin
 │  │  │  ├─ tables\               # GET status, ADMIN CRUD
 │  │  │  ├─ sessions\             # POST start, [id]/extend, [id]/end, [id]/bill
-│  │  │  ├─ queue\                # CRUD + call/seat
 │  │  │  ├─ orders\               # POST, PATCH status
 │  │  │  ├─ transactions\         # POST pay, [id]/void
 │  │  │  ├─ products\             # ADMIN CRUD
@@ -59,7 +58,6 @@ C:\GameHub\
 │  │  ├─ (cashier)\               # group, requires CASHIER
 │  │  │  ├─ board\                # live table board + timers
 │  │  │  ├─ reservations\
-│  │  │  ├─ queue\
 │  │  │  └─ sessions\
 │  │  └─ (admin)\                 # group, requires ADMIN
 │  │     ├─ dashboard\
@@ -78,7 +76,7 @@ C:\GameHub\
 └─ vite.config.ts
 ```
 
-**Module boundaries:** `lib/server/services/*` one file per module (no giant service). Pages thin; logic in services. **Role split:** operational (`AVAILABLE`↔`OCCUPIED`, `sessions`, `queue`, `orders`, `transactions` pay) is `CASHIER` (`POST /api/tables/:id/operational-status`, `POST /api/sessions`, etc); maintenance (`UNDER_MAINTENANCE`) is `ADMIN` (`PATCH /api/admin/tables`).
+**Module boundaries:** `lib/server/services/*` one file per module (no giant service). Pages thin; logic in services. **Role split:** operational (`AVAILABLE`↔`OCCUPIED`, `sessions`, `orders`, `transactions` pay) is `CASHIER` (`POST /api/tables/:id/operational-status`, `POST /api/sessions`, etc); maintenance (`UNDER_MAINTENANCE`) is `ADMIN` (`PATCH /api/admin/tables`).
 
 ---
 

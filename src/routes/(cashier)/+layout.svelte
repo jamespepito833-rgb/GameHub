@@ -18,7 +18,6 @@
 
 		<nav class="nav-links" aria-label="Cashier">
 			<a href="/board" class="nav-link" aria-current="page">Board</a>
-			<a href="/queue" class="nav-link">Queue</a>
 			<a href="/" class="nav-link">Hall</a>
 		</nav>
 

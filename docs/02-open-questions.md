@@ -24,22 +24,19 @@ All **Proposed** values below are now the authoritative decisions for Business R
 | Q09 | Max extensions | **Unlimited** (audited) | BR-17 |
 | Q10 | Extension rate | **Same pricingSnapshot** | BR-20 |
 | Q11 | Overrun extension | **Yes, before payment** | BR-17 |
-| Q12 | Who can extend/end | **CASHIER+ADMIN** | BR-28 |
-| Q13 | Queue vs reservation priority | **Reservations win** | BR-22 |
-| Q14 | CALLED expiry | **10 min → EXPIRED** | BR-23 |
-| Q15 | Preferred table | **Preference only** | BR-22 |
-| Q16 | Payment methods | **Cash + GCash (manual ref)** | BR-25 |
-| Q17 | Partial payment | **No — full payment required** | BR-26 |
-| Q18 | Void permission | **ADMIN only, reason required** | BR-27 |
-| Q19 | Receipt | **Screen + printable** | — |
-| Q20 | MAINTENANCE blocks reservations | **Yes, block new** | BR-01 |
-| Q21 | Pricing model | **Flat per hour with effectiveFrom** | BR-20 |
-| Q22 | Rate retroactive | **Never — snapshot preserved** | BR-21 |
-| Q23 | Cashier schedule enforcement | **Soft warning (allow but log)** | BR-29 |
-| Q24 | Logs retention | **Forever** | BR-30 |
-| Q25 | Dashboard refresh | **Poll 30s** | Arch |
-| Q26 | PII visibility | **Full to CASHIER/ADMIN, masked public** | BR-31 |
-| Q27 | Email | **Phone only, email optional** | BR-02 |
+| Q12 | Who can extend/end | **CASHIER** | BR-17 |
+| Q13 | Payment methods | **Cash + GCash (manual ref)** | BR-23 |
+| Q14 | Partial payment | **No — full payment required** | BR-24 |
+| Q15 | Void permission | **ADMIN only, reason required** | BR-25 |
+| Q16 | Receipt | **Screen + printable** | — |
+| Q17 | MAINTENANCE blocks reservations | **Yes, block new** | BR-01 |
+| Q18 | Pricing model | **Flat per hour with effectiveFrom** | BR-20 |
+| Q19 | Rate retroactive | **Never — snapshot preserved** | BR-21 |
+| Q20 | Cashier schedule enforcement | **Soft warning (allow but log)** | BR-27 |
+| Q21 | Logs retention | **Forever** | BR-28 |
+| Q22 | Dashboard refresh | **Poll 30s** | Arch |
+| Q23 | PII visibility | **Full to CASHIER/ADMIN, masked public** | BR-29 |
+| Q24 | Email | **Phone only, email optional** | BR-02 |
 
 Reopen by editing this file and notifying the programmer.
 

@@ -30,7 +30,6 @@
 | **Table** | `AVAILABLE` · `OCCUPIED` · `RESERVED` · `MAINTENANCE` · `OUT_OF_SERVICE` |
 | **Session** | `ACTIVE` · `EXTENDED` · `ENDED` · `COMPLETED` · `VOIDED` |
 | **Reservation** | `CONFIRMED` · `CANCELLED` · `CHECKED_IN` · `NO_SHOW` · `EXPIRED` |
-| **QueueEntry** | `WAITING` · `CALLED` · `SEATED` · `CANCELLED` · `EXPIRED` |
 | **Transaction** | `PENDING` · `PAID` · `VOIDED` |
 | **Order** | `PENDING` · `SERVED` · `CANCELLED` |
 
@@ -52,13 +51,12 @@
                     │
                     ├─W2──> Check-in ──> W4 Session (ACTIVE) ──> W5 Payment ──> Table AVAILABLE
                     │
-[Walk-in] ──W3──┬─> if AVAILABLE ──> W4 Session
-               └─> else ──> W3 Queue (WAITING) ──CALLED──> W4 Session
+[Walk-in] ──W3──> if AVAILABLE ──> W4 Session
+                else ──> inform no table available (no queue)
 
 W4 Session ──extend──> EXTENDED ──end──> ENDED ──W5──> COMPLETED
 W4 Session + W6 Orders ──> W5 Transaction (PAID)
-W7 Queue management runs concurrently (CASHIER)
-W8 Auth gates all W2-W7 (CASHIER/ADMIN)
+W8 Auth gates all W2-W6 (CASHIER/ADMIN)
 W9 Admin manages tables/pricing/cashiers/reports (ADMIN)
 ```
 
@@ -148,7 +146,7 @@ W9 Admin manages tables/pricing/cashiers/reports (ADMIN)
 | W2-A1 | Grace exceeded (proposed 15min late) | Auto or manual → `NO_SHOW`, slot freed; cashier can override with ADMIN approval (to be decided) |
 | W2-A2 | Table already OCCUPIED | `409` — "Table occupied. Free at {expectedEndAt} or assign alternative table" |
 | W2-A3 | Reservation CANCELLED | `422` — "Cannot check in cancelled reservation" |
-| W2-A4 | Early arrival (before startTime - buffer) | Allowed only if table AVAILABLE; otherwise queue or wait |
+| W2-A4 | Early arrival (before startTime - buffer) | Allowed only if table AVAILABLE; otherwise wait |
 | W2-A5 | Double check-in click | Idempotent — second call returns existing session |
 
 ### 4.3 Acceptance Criteria
@@ -162,7 +160,7 @@ W9 Admin manages tables/pricing/cashiers/reports (ADMIN)
 
 ## 5. W3 — Walk-in Customer
 
-**Module:** Queue Management + Session & Time Tracking  
+**Module:** Session & Time Tracking  
 **Actors:** `GUEST`/`CASHIER`, `SYSTEM`
 
 ### 5.1 Main Flow — Table Available
@@ -174,26 +172,15 @@ W9 Admin manages tables/pricing/cashiers/reports (ADMIN)
 | 3 | IF `AVAILABLE` exists → CASHIER → **Start Session** (`POST /api/sessions { tableId, customerName, customerContact, durationMinutes }` — walk-in, no reservationId) |
 | 4 | SYSTEM validates: table AVAILABLE, not MAINTENANCE, cashier authorized → creates `sessions` (ACTIVE), table → OCCUPIED, logs `WALKIN_SESSION_STARTED` |
 
-### 5.2 Alternate Flow — No Table Available → Queue
+### 5.2 Alternate Flow — No Table Available
 
 | Step | Action |
 |------|--------|
-| 1 | No AVAILABLE table → CASHIER → **Add to Queue** (`POST /api/queue { customerName, customerContact, partySize, preferredTableId? }`) |
-| 2 | SYSTEM validates: not already in `WAITING`/`CALLED` with same contact, creates `queueEntries` `{ position: autoIncrement, status: WAITING, createdAt, preferredTableId }` |
-| 3 | Queue Board shows FIFO ordered by `createdAt` |
-| 4 | When table freed (W5) → SYSTEM or CASHIER pops next `WAITING` → `CALLED` (notifies), CASHIER → **Seat** → creates session → `SEATED` |
+| 1 | No AVAILABLE table → CASHIER informs customer no table available; customer may wait or return later (no queue system). |
 
-### 5.3 Queue Rules (locked v1.0)
-
-- FIFO by `createdAt`; preferredTable is preference, not guarantee.
-- `CALLED` expires after X minutes (proposed 10min) → `EXPIRED`, next in line called.
-- Customer can cancel queue → `CANCELLED`.
-
-### 5.4 Acceptance Criteria
+### 5.3 Acceptance Criteria
 
 - [ ] Walk-in cannot start session on OCCUPIED/MAINTENANCE table.
-- [ ] One customer has at most one `WAITING`/`CALLED` entry.
-- [ ] Queue → Session transition is atomic.
 - [ ] Table board updates without polling every second (SvelteKit load + optional websocket/polling at reasonable interval — to be architected).
 
 ---
@@ -306,20 +293,6 @@ ACTIVE --extend--> EXTENDED --extend--> EXTENDED --end--> ENDED --pay--> COMPLET
 
 ---
 
-## 9. W7 — Queue Management (Detailed)
-
-**Module:** Queue Management  
-**Actors:** `CASHIER`, `SYSTEM`
-
-| Action | Endpoint | Validation |
-|--------|----------|------------|
-| View Queue | `GET /api/queue?status=WAITING` | Sorted by `createdAt` ASC |
-| Add | `POST /api/queue` | One WAITING per contact |
-| Call Next | `POST /api/queue/:id/call` | `WAITING` → `CALLED`, `calledAt: now()` |
-| Seat | `POST /api/queue/:id/seat { tableId }` | `CALLED` → `SEATED` + create session (atomic) |
-| Cancel | `POST /api/queue/:id/cancel` | `WAITING`/`CALLED` → `CANCELLED` |
-| Expire | System cron / on poll | `CALLED` and `now - calledAt > 10min` → `EXPIRED` |
-
 ---
 
 ## 10. W8 — Authentication & Access Control
@@ -372,7 +345,7 @@ Full rule definitions with error codes and edge cases will be in `02-business-ru
 ## 13. Non-Functional & Technical Notes
 
 - **Timer Architecture:** Persist `startedAt`, `endedAt`, `expectedEndAt`, `extensions[]`; frontend computes elapsed via `setInterval` (no DB write). Server computes authoritative `durationMinutes` on End.
-- **Indexes (locked v1.0 — see 05-nosql-design.md):** `reservations: { tableId, date, startTime }` unique partial where `status=CONFIRMED`; `sessions: { tableId, status }` partial where `status in [ACTIVE, EXTENDED]` unique; `queueEntries: { status, createdAt }`; `transactions: { paidAt }`; `activityLogs: { createdAt, actorId }`.
+- **Indexes (locked v1.0 — see 05-nosql-design.md):** `reservations: { tableId, date, startTime }` unique partial where `status=CONFIRMED`; `sessions: { tableId, status }` partial where `status in [ACTIVE, EXTENDED]` unique; `transactions: { paidAt }`; `activityLogs: { createdAt, actorId }`.
 - **Validation:** All inputs validated server-side with TypeScript + Zod (or equivalent) before DB write.
 - **SvelteKit Routes (locked v1.0 — see 06-architecture.md):** `/` (landing), `/tables`, `/rates`, `/reservations/[id]`, `/login`, `/(cashier)/board`, `/(cashier)/sessions`, `/(admin)/dashboard`, `/(admin)/tables`, `/(admin)/cashiers`, `/(admin)/pricing`, `/(admin)/reports`, `/(admin)/logs`.
 

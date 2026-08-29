@@ -34,7 +34,6 @@
 | `reservations` | Guest reservations | High | No |
 | `transactions` | Payments (PAID/VOIDED) | High | No |
 | `orders` | F&B orders linked to session | High | No |
-| `queueEntries` | Walk-in queue | Medium | No (EXPIRED retained) |
 | `cashierSchedules` | Cashier operating hours | Low | No |
 | `activityLogs` | Audit log (append-only, forever per BR-30) | Very High | No |
 | `authSessions` | Cookie sessions (revocable) | Medium | **TTL 7 days** |
@@ -275,35 +274,6 @@ interface Order {
 
 ---
 
-### 3.9 `queueEntries`
-
-```ts
-interface QueueEntry {
-  _id: ObjectId
-  customerName: string
-  customerContact: string // indexed, one WAITING/CALLED per contact
-  partySize?: number | null // 1-20
-  preferredTableId?: ObjectId | null
-  status: "WAITING" | "CALLED" | "SEATED" | "CANCELLED" | "EXPIRED"
-  position?: number | null // optional auto-inc fallback to createdAt sort
-  createdAt: Date
-  calledAt?: Date | null
-  seatedAt?: Date | null
-  seatedTableId?: ObjectId | null
-  seatedSessionId?: ObjectId | null
-  updatedAt: Date
-}
-```
-
-**Indexes:**
-- `db.queueEntries.createIndex({ status: 1, createdAt: 1 })` // FIFO
-- `db.queueEntries.createIndex({ customerContact: 1, status: 1 }, { partialFilterExpression: { status: { $in: ["WAITING","CALLED"] } } })`
-- `db.queueEntries.createIndex({ createdAt: 1 })`
-
-**Rule:** Application enforces one WAITING/CALLED per contact (BR-23). Use `findOne` before insert inside transaction or unique partial index variant.
-
----
-
 ### 3.10 `cashierSchedules`
 
 ```ts
@@ -384,7 +354,6 @@ users 1──* authSessions
 
 tables 1──* reservations
 tables 1──* sessions
-tables 1──* queueEntries.preferredTableId (optional)
 tables 1──* transactions / orders (denormalized tableId)
 
 reservations 1──0..1 sessions (reservationId unique)
@@ -413,7 +382,6 @@ export async function ensureIndexes(db: Db) {
   await db.collection("sessions").createIndex({ reservationId: 1 }, { unique: true, sparse: true });
   await db.collection("transactions").createIndex({ sessionId: 1 }, { unique: true, partialFilterExpression: { status: "PAID" } });
   await db.collection("orders").createIndex({ sessionId: 1, createdAt: 1 });
-  await db.collection("queueEntries").createIndex({ status: 1, createdAt: 1 });
   await db.collection("activityLogs").createIndex({ createdAt: -1 });
   await db.collection("authSessions").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
   // ... remaining indexes as above
